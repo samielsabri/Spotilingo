@@ -1,0 +1,19 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environment
+venv/
+.venv/
+
+# IDE settings
+.idea/
+.vscode/
+
+# Log files
+*.log
+
+# Other files that should not be committed
+.DS_Store
+.env
