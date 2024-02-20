@@ -1,0 +1,17 @@
+python-dotenv #to manage environment variables
+spotipy #python library for spotify api
+lyricsgenius #python library for genius api
+unidecode #to remove accents
+alphabet_detector #to detect alphabet
+fasttext #to detect language #1
+fastlangid #to detect language #2
+langdetect #to detect language #3
+romkan #to convert romaji to hiragana
+fuzzywuzzy #to compare strings using fuzzy logic/similarity scores
+pandas #data processing
+seaborn #data visualization
+requests #web requests
+sendgrid==6.6.0 #email sender
+pytest #testing
+IPython #interactive python
+flask #web framework
