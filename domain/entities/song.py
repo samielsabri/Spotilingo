@@ -1,5 +1,5 @@
 class Song:
-    def __init__(self, id, title, processed_title, primary_artist, processed_artist, secondary_artist, other_artists, popularity, languages = None, lyrics = None):
+    def __init__(self, id, title, processed_title, primary_artist, processed_artist, secondary_artist, other_artists, popularity, languages = None):
         """Initializes a new instance of the SpotifyTrack class.
 
         :param id: The unique Spotify identifier of the track.
@@ -21,11 +21,11 @@ class Song:
         self.secondary_artist = secondary_artist
         self.other_artists = other_artists
         self.popularity = popularity
-        self.lyrics = lyrics
+        self.lyrics = "No lyrics found."
         self.languages = languages
 
     def __repr__(self):
         """
         Returns a string representation of the song, including its title, primary artist, and language(s).
         """
-        return f"'{self.title}' by {self.primary_artist} ({self.languages})"
+        return f"'{self.title}' by {self.primary_artist} ({self.languages}) with lyrics '{self.lyrics}'."

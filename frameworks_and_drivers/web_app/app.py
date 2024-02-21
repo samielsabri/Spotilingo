@@ -3,6 +3,10 @@ import sys
 import os
 
 from interface_adapters.gateways.spotify_service import SpotifyService
+from domain.use_cases.fetch_liked_songs import FetchLikedSongs
+from domain.use_cases.fetch_lyrics import FetchLyrics
+from interface_adapters.gateways.genius_service import GeniusService
+from interface_adapters.gateways.musixmatch_service import MusixmatchService
 
 from flask import Flask, request, jsonify, redirect, session, url_for, render_template
 from dotenv import load_dotenv
@@ -26,7 +30,8 @@ spotify_service = SpotifyService(client_id=CLIENT_ID,
                                  client_secret=CLIENT_SECRET,
                                  redirect_uri=REDIRECT_URI)
 
-# genius_service = GeniusService()
+genius_service = GeniusService()
+musixmatch_service = MusixmatchService()
 
 @app.route('/')
 def login():
@@ -61,7 +66,13 @@ def get_liked_songs():
             # User not logged in, start the OAuth flow
             return redirect(url_for('login'))
         
-        liked_songs = spotify_service.get_liked_songs(session)
+        fetch_liked_songs_use_case = FetchLikedSongs(spotify_service)
+        fetch_lyrics_use_case = FetchLyrics(genius_service, musixmatch_service)
+
+        liked_songs = fetch_liked_songs_use_case.execute(session)
+
+        for song in liked_songs:
+            fetch_lyrics_use_case.execute(song)
         
         songs_data = [{
             'spotify_id': song.id,
@@ -71,10 +82,12 @@ def get_liked_songs():
             'processed_artist': song.processed_artist,
             'secondary_artist': song.secondary_artist,
             'other_artists': song.other_artists,
-            'popularity': song.popularity
+            'popularity': song.popularity,
+            'lyrics': song.lyrics
         } for song in liked_songs]
         
         return jsonify(songs_data)
+    
     except Exception as e:
         return jsonify({"error": str(e)}), 401
 

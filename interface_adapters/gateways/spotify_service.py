@@ -3,6 +3,7 @@ from spotipy.oauth2 import SpotifyOAuth
 import utilities.string_processing as string_processing
 from domain.entities.song import Song
 
+LIMIT_LIKED_SONGS = 5
 
 class SpotifyService:
     def __init__(self, client_id, client_secret, redirect_uri):
@@ -25,7 +26,7 @@ class SpotifyService:
 
     def get_liked_songs(self, session):
         spotify_client = self.get_spotify_client(session)
-        results = spotify_client.current_user_saved_tracks(limit=10)
+        results = spotify_client.current_user_saved_tracks(limit=LIMIT_LIKED_SONGS)
         songs = []
         for item in results['items']:
             track = item['track']
@@ -39,8 +40,9 @@ class SpotifyService:
 
             processed_name, processed_artist = string_processing.process_input(track['name'], track['artists'][0]['name'])
             
-            song = Song(track['id'], 
-                        track['name'], 
+            
+            song = Song(track['id'],
+                        track['name'],
                         processed_name,
                         track['artists'][0]['name'],
                         processed_artist,
