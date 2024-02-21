@@ -2,6 +2,9 @@
 
 Spotilingo is a web application designed to analyze and visualize the languages used in the songs from a user's Spotify library. By leveraging Spotify's and Genius' APIs and advanced natural language processing (NLP), Spotilingo offers users a unique insight into the diversity of languages present in their favorite music.
 
+For now you can run the app like this:
+python3.10 -m frameworks_and_drivers.web_app.app
+
 ## Project Structure
 
 This project follows the Clean Architecture principles to ensure separation of concerns and scalability. Below is an overview of the project structure and the purpose of each directory:

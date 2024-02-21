@@ -1,15 +1,16 @@
 # frameworks_and_drivers/web_app/app.py
-import sys
 import os
+import time
+from flask import Flask
+from flask import request, jsonify, redirect, session, url_for, render_template
+from dotenv import load_dotenv
 
-from interface_adapters.gateways.spotify_service import SpotifyService
 from domain.use_cases.fetch_liked_songs import FetchLikedSongs
 from domain.use_cases.fetch_lyrics import FetchLyrics
-from interface_adapters.gateways.genius_service import GeniusService
-from interface_adapters.gateways.musixmatch_service import MusixmatchService
+from interface_adapters.services.spotify_service import SpotifyService
+from interface_adapters.services.genius_service import GeniusService
+from interface_adapters.services.musixmatch_service import MusixmatchService
 
-from flask import Flask, request, jsonify, redirect, session, url_for, render_template
-from dotenv import load_dotenv
 
 
 
@@ -54,6 +55,7 @@ def callback():
 
 @app.route('/main')
 def main():
+    """Main route to display the main page."""
     if 'token_info' not in session:
         return redirect('/login')
     return render_template('main.html')  # Create a main.html template with buttons
@@ -64,15 +66,23 @@ def get_liked_songs():
     try:
         if 'token_info' not in session:
             # User not logged in, start the OAuth flow
-            return redirect(url_for('login'))
+            return redirect(url_for('/login'))
         
+        start_time = time.time()
         fetch_liked_songs_use_case = FetchLikedSongs(spotify_service)
         fetch_lyrics_use_case = FetchLyrics(genius_service, musixmatch_service)
+
+
 
         liked_songs = fetch_liked_songs_use_case.execute(session)
 
         for song in liked_songs:
+            song_start_time = time.time()
             fetch_lyrics_use_case.execute(song)
+            if song.lyrics != "No lyrics found":
+                song.languages = language_detector.detect_languages(lyrics)
+            song_end_time = time.time()
+            print(f"Time to fetch lyrics and languages for {song.title}: {song_end_time - song_start_time} seconds")
         
         songs_data = [{
             'spotify_id': song.id,
@@ -85,6 +95,10 @@ def get_liked_songs():
             'popularity': song.popularity,
             'lyrics': song.lyrics
         } for song in liked_songs]
+
+        end_time = time.time()
+        songs_data_length = len(songs_data)
+        print(f"Total time to fetch all liked {songs_data_length} songs and lyrics: {end_time - start_time} seconds.")
         
         return jsonify(songs_data)
     

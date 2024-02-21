@@ -15,3 +15,5 @@ sendgrid==6.6.0 #email sender
 pytest #testing
 IPython #interactive python
 flask #web framework
+python-Levenshtein #to make fuzzywuzzy faster
+```

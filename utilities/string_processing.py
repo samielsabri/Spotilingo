@@ -1,3 +1,4 @@
+"""This module contains functions to process strings (in particular song titles and artists)."""
 import re
 from unidecode import unidecode
 from alphabet_detector import AlphabetDetector
@@ -13,7 +14,6 @@ def process_input(track_name, artist_name):
    track_name = normalize_diacritics_and_special_chars(track_name)
    track_name = re.sub(r"\s+", "-", track_name)
    track_name = track_name.split("-ao-vivo")[0].strip()
-
    artist_name = artist_name.lower()
    artist_name = artist_name.replace("'", "")
    artist_name = artist_name.replace("’", "")
@@ -59,6 +59,7 @@ def normalize_diacritics_and_special_chars(string):
 def process_track_name_features(track_name):
    """Remove the features from the track name."""
    track_name = track_name.split("-feat")[0].strip()
+   track_name = track_name.split("-(feat")[0].strip()
    track_name = track_name.split("-ft")[0].strip()
    track_name = track_name.split("-ft.")[0].strip()
    track_name = track_name.split("(with")[0].strip()
