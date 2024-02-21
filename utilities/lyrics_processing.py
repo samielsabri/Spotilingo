@@ -10,45 +10,45 @@ ROMAJI_THRESHOLD = 0.90
 MIN_LINE_LENGTH = 10
 
 def process_lyrics(lyrics):
-   """Process Genius lyrics to remove unwanted lines and characters."""
-   if lyrics is None:
-       return None
+    """Process Genius lyrics to remove unwanted lines and characters."""
+    if lyrics is None:
+        return None
 
-   lines = lyrics.split('\n')
-
-
-   processed_lyrics = []
+    lines = lyrics.split('\n')
 
 
-   for index, line in enumerate(lines):
-       if index == 0:
-           continue
-       if not line.strip(): # skip empty lines
-           continue
-       if line.startswith('[') or line.endswith(']'): # skip lines indicating song parts
-           continue
-       if ad.is_latin(line) and len(line) < MIN_LINE_LENGTH: # skip latin alphabet lines that are too short to analyze
-           continue
-       if '(' in line and ')' in line:
-           line = remove_brackets(line)
-       if has_repetitive_pattern(line): # deal with "lalalala" "nananana" etc.
-           continue
-       if is_not_unique_line(line, processed_lyrics): # skip lines that are already in the list
-           continue
-       if is_valid_romaji(line.lower()):
-           line = line.replace("ō", "ou")
-           line = to_hiragana(line)
-       if index == len(lines) - 1:
-           line = re.sub(r"\d+(\.\d+)?\s*K?Embed$", "", line)
-           line = line.replace("Embed", "")
-       if is_not_unique_line(line, processed_lyrics): # skip lines that are already in the list
-           continue
+    processed_lyrics = []
+
+    for index, line in enumerate(lines):
+        if index == 0:
+            continue
+        if not line.strip(): # skip empty lines
+            continue
+        if line.startswith('[') or line.endswith(']'): # skip lines indicating song parts
+            continue
+        if ad.is_latin(line) and len(line) < MIN_LINE_LENGTH: # skip latin alphabet lines that are too short to analyze
+            continue
+        if '(' in line and ')' in line:
+            line = remove_brackets(line)
+        if has_repetitive_pattern(line): # deal with "lalalala" "nananana" etc.
+            continue
+        if is_not_unique_line(line, processed_lyrics): # skip lines that are already in the list
+            continue
+        if is_valid_romaji(line.lower()):
+            line = line.replace("ō", "ou")
+            line = to_hiragana(line)
+        if line.startswith("You might also like"):
+            line = line.replace("You might also like", "").strip()
+        if index == len(lines) - 1:
+            line = re.sub(r"\d+(\.\d+)?\s*K?Embed$", "", line)
+            line = line.replace("Embed", "")
+        if is_not_unique_line(line, processed_lyrics): # skip lines that are already in the list
+            continue
 
 
-       processed_lyrics.append(line)
+        processed_lyrics.append(line)
 
-
-   return processed_lyrics
+    return processed_lyrics
 
 def process_alternative_lyrics(lyrics):
     """Process Musixmatch lyrics to remove unwanted lines and characters."""
@@ -78,6 +78,8 @@ def process_alternative_lyrics(lyrics):
         if is_valid_romaji(line.lower()):
             line = line.replace("ō", "ou")
             line = to_hiragana(line)
+        if line.startswith("You might also like"):
+            line = line.replace("You might also like", "").strip()
         if line.startswith('******* This Lyrics is NOT for Commercial use *******'): # skip the rest of the lyrics
             break
         if is_not_unique_line(line, processed_lyrics): # skip duplicate lines
@@ -90,10 +92,10 @@ def process_alternative_lyrics(lyrics):
     return processed_lyrics
 
 def remove_brackets(line):
-   """Remove text in brackets like "(yeah, yeah)" from the input line."""
-   pattern = r"\([^)]*\)"
-   cleaned_text = re.sub(pattern,'', line)
-   return cleaned_text
+    """Remove text in brackets like "(yeah, yeah)" from the input line."""
+    pattern = r"\([^)]*\)"
+    cleaned_text = re.sub(pattern,'', line)
+    return cleaned_text
 
 
 def has_repetitive_pattern(line):

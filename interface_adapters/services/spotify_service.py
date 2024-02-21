@@ -3,7 +3,7 @@ from spotipy.oauth2 import SpotifyOAuth
 import utilities.string_processing as string_processing
 from domain.entities.song import Song
 
-LIMIT_LIKED_SONGS = 20
+LIMIT_LIKED_SONGS = 10
 
 class SpotifyService:
     def __init__(self, client_id, client_secret, redirect_uri):

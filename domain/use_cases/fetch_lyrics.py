@@ -17,10 +17,10 @@ class FetchLyrics:
             if not lyrics or lyrics == "Alternative search needed.":
                 lyrics = self.musixmatch_service.get_lyrics(song)
             
-            song.lyrics = lyrics if lyrics else "No lyrics found."
+            song.lyrics = lyrics if lyrics else None
         
         except Exception as e:  # Consider catching more specific exceptions
             print(f"An error occurred while fetching lyrics: {e}")
-            song.lyrics = "No lyrics found"
+            song.lyrics = None
     
     

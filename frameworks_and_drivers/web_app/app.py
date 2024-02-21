@@ -7,9 +7,17 @@ from dotenv import load_dotenv
 
 from domain.use_cases.fetch_liked_songs import FetchLikedSongs
 from domain.use_cases.fetch_lyrics import FetchLyrics
+from domain.use_cases.analyze_song_languages import AnalyzeSongLanguages
 from interface_adapters.services.spotify_service import SpotifyService
 from interface_adapters.services.genius_service import GeniusService
 from interface_adapters.services.musixmatch_service import MusixmatchService
+from interface_adapters.services.fasttext_language_detector import FastTextDetector
+from interface_adapters.services.langid_language_detector import LangIDDetector
+from interface_adapters.services.ld_language_detector import LdDetector
+
+
+from frameworks_and_drivers.config import FASTTEXT_MODEL_PATH
+
 
 
 
@@ -22,6 +30,7 @@ BASE_URL = 'https://api.spotify.com/v1/'
 AUTH_URL = 'https://accounts.spotify.com/api/token'
 REDIRECT_URI = 'http://localhost:5000/callback'
 
+# Create a Flask app
 app = Flask(__name__)
 app.secret_key = os.getenv('FLASK_SECRET_KEY')
 app.config['SESSION_COOKIE_NAME'] = 'spotify-login-session'
@@ -31,8 +40,15 @@ spotify_service = SpotifyService(client_id=CLIENT_ID,
                                  client_secret=CLIENT_SECRET,
                                  redirect_uri=REDIRECT_URI)
 
+# Configure your lyrics services
 genius_service = GeniusService()
 musixmatch_service = MusixmatchService()
+
+# Configure your language detectors
+fasttext_detector = FastTextDetector(FASTTEXT_MODEL_PATH)
+langid_detector = LangIDDetector()
+ld_detector = LdDetector()
+
 
 @app.route('/')
 def login():
@@ -71,16 +87,15 @@ def get_liked_songs():
         start_time = time.time()
         fetch_liked_songs_use_case = FetchLikedSongs(spotify_service)
         fetch_lyrics_use_case = FetchLyrics(genius_service, musixmatch_service)
-
-
+        analyze_song_languages_use_case = AnalyzeSongLanguages(fasttext_detector, langid_detector, ld_detector)
 
         liked_songs = fetch_liked_songs_use_case.execute(session)
 
         for song in liked_songs:
             song_start_time = time.time()
             fetch_lyrics_use_case.execute(song)
-            if song.lyrics != "No lyrics found":
-                song.languages = language_detector.detect_languages(lyrics)
+            if song.lyrics is not None:
+                analyze_song_languages_use_case.execute(song)
             song_end_time = time.time()
             print(f"Time to fetch lyrics and languages for {song.title}: {song_end_time - song_start_time} seconds")
         
@@ -93,7 +108,8 @@ def get_liked_songs():
             'secondary_artist': song.secondary_artist,
             'other_artists': song.other_artists,
             'popularity': song.popularity,
-            'lyrics': song.lyrics
+            'lyrics': song.lyrics,
+            'languages': song.languages
         } for song in liked_songs]
 
         end_time = time.time()
