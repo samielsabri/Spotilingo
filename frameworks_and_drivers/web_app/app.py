@@ -8,15 +8,21 @@ from dotenv import load_dotenv
 from domain.use_cases.fetch_liked_songs import FetchLikedSongs
 from domain.use_cases.fetch_lyrics import FetchLyrics
 from domain.use_cases.analyze_song_languages import AnalyzeSongLanguages
+from domain.use_cases.count_languages import CountLanguages
+from domain.use_cases.analyze_songs import AnalyzeSongs
+from domain.repositories.song_repository import ISongRepository
 from interface_adapters.services.spotify_service import SpotifyService
 from interface_adapters.services.genius_service import GeniusService
 from interface_adapters.services.musixmatch_service import MusixmatchService
 from interface_adapters.services.fasttext_language_detector import FastTextDetector
 from interface_adapters.services.langid_language_detector import LangIDDetector
 from interface_adapters.services.ld_language_detector import LdDetector
+from interface_adapters.controllers.language_count_controller import LanguageCountController
+from interface_adapters.presenters.language_count_presenter import LanguageCountPresenter
 
 
 from frameworks_and_drivers.config import FASTTEXT_MODEL_PATH
+from frameworks_and_drivers.repository.sqlite_song_repository import SQLiteSongRepository
 
 
 
@@ -48,6 +54,12 @@ musixmatch_service = MusixmatchService()
 fasttext_detector = FastTextDetector(FASTTEXT_MODEL_PATH)
 langid_detector = LangIDDetector()
 ld_detector = LdDetector()
+
+# Configure your song repository
+db_path = os.getenv('DB_PATH')
+
+# Constants
+TOP_N = 10
 
 
 @app.route('/')
@@ -84,39 +96,54 @@ def get_liked_songs():
             # User not logged in, start the OAuth flow
             return redirect(url_for('/login'))
         
-        start_time = time.time()
+        # start_time = time.time()
         fetch_liked_songs_use_case = FetchLikedSongs(spotify_service)
         fetch_lyrics_use_case = FetchLyrics(genius_service, musixmatch_service)
         analyze_song_languages_use_case = AnalyzeSongLanguages(fasttext_detector, langid_detector, ld_detector)
+        song_repository = SQLiteSongRepository(db_path)
 
-        liked_songs = fetch_liked_songs_use_case.execute(session)
 
-        for song in liked_songs:
-            song_start_time = time.time()
-            fetch_lyrics_use_case.execute(song)
-            if song.lyrics is not None:
-                analyze_song_languages_use_case.execute(song)
-            song_end_time = time.time()
-            print(f"Time to fetch lyrics and languages for {song.title}: {song_end_time - song_start_time} seconds")
+        analyze_songs_use_case = AnalyzeSongs(session, fetch_liked_songs_use_case, fetch_lyrics_use_case, analyze_song_languages_use_case, song_repository)
+        songs = analyze_songs_use_case.execute()
+
+        # for song in liked_songs:
+        #     song_start_time = time.time()
+        #     song_lyrics_start_time = time.time()
+        #     fetch_lyrics_use_case.execute(song)
+        #     song_lyrics_end_time = time.time()
+        #     if song.lyrics is not None:
+        #         song_language_start_time = time.time()
+        #         analyze_song_languages_use_case.execute(song)
+        #         song_language_end_time = time.time()
+        #     else:
+        #         song_language_start_time = time.time()
+        #         song_language_end_time = time.time()
+        #     song_end_time = time.time()
+        #     print(f"Time to fetch data for {song.title}: {song_end_time - song_start_time} seconds, lyrics: {song_lyrics_end_time - song_lyrics_start_time} seconds, language: {song_language_end_time - song_language_start_time} seconds.")
         
-        songs_data = [{
-            'spotify_id': song.id,
-            'title': song.title,
-            'processed_title': song.processed_title,
-            'artist': song.primary_artist,
-            'processed_artist': song.processed_artist,
-            'secondary_artist': song.secondary_artist,
-            'other_artists': song.other_artists,
-            'popularity': song.popularity,
-            'lyrics': song.lyrics,
-            'languages': song.languages
-        } for song in liked_songs]
+        # songs_data = [{
+        #     'spotify_id': song.spotify_id,
+        #     'title': song.title,
+        #     'processed_title': song.processed_title,
+        #     'artist': song.primary_artist,
+        #     'processed_artist': song.processed_artist,
+        #     'secondary_artist': song.secondary_artist,
+        #     'other_artists': song.other_artists,
+        #     'popularity': song.popularity,
+        #     'lyrics': song.lyrics,
+        #     'languages': song.languages
+        # } for song in liked_songs]
 
-        end_time = time.time()
-        songs_data_length = len(songs_data)
-        print(f"Total time to fetch all liked {songs_data_length} songs and lyrics: {end_time - start_time} seconds.")
+        # end_time = time.time()
+        # songs_data_length = len(songs_data)
+        # print(f"Total time to fetch all liked {songs_data_length} songs and lyrics: {end_time - start_time} seconds.")
         
-        return jsonify(songs_data)
+        count_languages_use_case = CountLanguages()
+        language_count_presenter = LanguageCountPresenter()
+        language_count_controller = LanguageCountController(count_languages_use_case, language_count_presenter)
+        language_counts = language_count_controller.get_language_counts(songs, top_n=TOP_N)
+
+        return jsonify(language_counts)
     
     except Exception as e:
         return jsonify({"error": str(e)}), 401
