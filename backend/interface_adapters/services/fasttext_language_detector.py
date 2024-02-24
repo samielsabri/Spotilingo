@@ -1,6 +1,6 @@
 """This module contains the FastTextDetector class, which is an implementation of the ILanguageDetector interface."""
 import fasttext
-from .language_detector import ILanguageDetector
+from backend.interface_adapters.services.language_detector import ILanguageDetector
 
 class FastTextDetectionError(Exception):
     """Custom exception for FastText detection errors."""

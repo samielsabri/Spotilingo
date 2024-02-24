@@ -5,24 +5,23 @@ from flask import Flask
 from flask import request, jsonify, redirect, session, url_for, render_template
 from dotenv import load_dotenv
 
-from domain.use_cases.fetch_liked_songs import FetchLikedSongs
-from domain.use_cases.fetch_lyrics import FetchLyrics
-from domain.use_cases.analyze_song_languages import AnalyzeSongLanguages
-from domain.use_cases.count_languages import CountLanguages
-from domain.use_cases.analyze_songs import AnalyzeSongs
-from domain.repositories.song_repository import ISongRepository
-from interface_adapters.services.spotify_service import SpotifyService
-from interface_adapters.services.genius_service import GeniusService
-from interface_adapters.services.musixmatch_service import MusixmatchService
-from interface_adapters.services.fasttext_language_detector import FastTextDetector
-from interface_adapters.services.langid_language_detector import LangIDDetector
-from interface_adapters.services.ld_language_detector import LdDetector
-from interface_adapters.controllers.language_count_controller import LanguageCountController
-from interface_adapters.presenters.language_count_presenter import LanguageCountPresenter
+from backend.domain.use_cases.fetch_liked_songs import FetchLikedSongs
+from backend.domain.use_cases.fetch_lyrics import FetchLyrics
+from backend.domain.use_cases.analyze_song_languages import AnalyzeSongLanguages
+from backend.domain.use_cases.count_languages import CountLanguages
+from backend.domain.use_cases.analyze_songs import AnalyzeSongs
+from backend.interface_adapters.services.spotify_service import SpotifyService
+from backend.interface_adapters.services.genius_service import GeniusService
+from backend.interface_adapters.services.musixmatch_service import MusixmatchService
+from backend.interface_adapters.services.fasttext_language_detector import FastTextDetector
+from backend.interface_adapters.services.langid_language_detector import LangIDDetector
+from backend.interface_adapters.services.ld_language_detector import LdDetector
+from backend.interface_adapters.controllers.language_count_controller import LanguageCountController
+from backend.interface_adapters.presenters.language_count_presenter import LanguageCountPresenter
 
 
-from frameworks_and_drivers.config import FASTTEXT_MODEL_PATH
-from frameworks_and_drivers.repository.sqlite_song_repository import SQLiteSongRepository
+from backend.frameworks_and_drivers.config import FASTTEXT_MODEL_PATH
+from backend.frameworks_and_drivers.repository.sqlite_song_repository import SQLiteSongRepository
 
 
 

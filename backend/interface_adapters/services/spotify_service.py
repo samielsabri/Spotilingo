@@ -1,11 +1,13 @@
+"""This module is responsible for interacting with the Spotify API."""
 import spotipy
 from spotipy.oauth2 import SpotifyOAuth
-import utilities.string_processing as string_processing
-from domain.entities.song import Song
+import backend.utilities.string_processing as string_processing
+from backend.domain.entities.song import Song
 
 LIMIT_LIKED_SONGS = 10
 
 class SpotifyService:
+    """This class is responsible for interacting with the Spotify API."""
     def __init__(self, client_id, client_secret, redirect_uri):
         self.oauth_manager = SpotifyOAuth(client_id=client_id,
                                                             client_secret=client_secret,
@@ -14,6 +16,7 @@ class SpotifyService:
         self.sp = None
         
     def get_spotify_client(self, session):
+        """Get the Spotify client using the session token."""
         if 'token_info' not in session:
             raise Exception("User not logged in")
         # Check if the session token has expired

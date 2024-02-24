@@ -1,5 +1,5 @@
 """Song Repository Interface"""
-from domain.entities.song import Song
+from backend.domain.entities.song import Song
 
 class ISongRepository:
     """Interface for the song repository."""

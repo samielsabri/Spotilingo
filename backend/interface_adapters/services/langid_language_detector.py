@@ -1,5 +1,5 @@
 from fastlangid.langid import LID
-from .language_detector import ILanguageDetector
+from backend.interface_adapters.services.language_detector import ILanguageDetector
 
 class LangIDDetectionError(Exception):
     """Custom exception for LangID detection errors."""

@@ -7,8 +7,8 @@ from dotenv import load_dotenv
 from fuzzywuzzy import fuzz
 from romkan import to_hiragana
 
-import utilities.string_processing as strp
-import utilities.lyrics_processing as lyrp
+import backend.utilities.string_processing as strp
+import backend.utilities.lyrics_processing as lyrp
 
 BASE_URL = "https://api.genius.com"
 FUZZY_THRESHOLD = 85

@@ -1,5 +1,5 @@
 import langdetect as ld
-from .language_detector import ILanguageDetector
+from backend.interface_adapters.services.language_detector import ILanguageDetector
 
 class LdDetectionError(Exception):
     """Custom exception for LangDetect detection errors."""

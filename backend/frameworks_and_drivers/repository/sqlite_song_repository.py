@@ -1,7 +1,7 @@
 """This module contains the SQLiteSongRepository class."""
 import sqlite3
-from domain.entities.song import Song
-from domain.repositories.song_repository import ISongRepository
+from backend.domain.entities.song import Song
+from backend.domain.repositories.song_repository import ISongRepository
 
 class SQLiteSongRepository(ISongRepository):
     """A SQLite implementation of the song repository."""

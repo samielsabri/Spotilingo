@@ -1,7 +1,7 @@
 import requests
 import os
 
-import utilities.lyrics_processing as lyrp
+import backend.utilities.lyrics_processing as lyrp
 
 class MusixmatchService:
     """Service to interact with the Musixmatch API."""
