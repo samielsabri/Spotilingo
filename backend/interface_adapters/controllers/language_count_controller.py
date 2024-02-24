@@ -11,6 +11,8 @@ class LanguageCountController:
         language_counts = self.use_case.execute(songs)
         if top_n:
             top_languages = language_counts.most_common(top_n)
+            top_languages = dict(top_languages)
         else:
             top_languages = language_counts.items()
+            top_languages = dict(top_languages)
         return self.presenter.format(top_languages)

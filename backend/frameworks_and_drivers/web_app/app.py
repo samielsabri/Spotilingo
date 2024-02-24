@@ -87,23 +87,31 @@ def main():
         return redirect('/login')
     return render_template('main.html')  # Create a main.html template with buttons
 
-@app.route('/get-liked-songs', methods=['POST'])
-def get_liked_songs():
+@app.route('/analyze', methods=['POST'])
+def analyze():
     """Fetch the last 10 liked songs for the logged-in user."""
     try:
         if 'token_info' not in session:
             # User not logged in, start the OAuth flow
             return redirect(url_for('/login'))
         
+        analysis_type = request.form['analysis_type']
+        
         # start_time = time.time()
+
+
         fetch_liked_songs_use_case = FetchLikedSongs(spotify_service)
         fetch_lyrics_use_case = FetchLyrics(genius_service, musixmatch_service)
         analyze_song_languages_use_case = AnalyzeSongLanguages(fasttext_detector, langid_detector, ld_detector)
         song_repository = SQLiteSongRepository(db_path)
 
-
-        analyze_songs_use_case = AnalyzeSongs(session, fetch_liked_songs_use_case, fetch_lyrics_use_case, analyze_song_languages_use_case, song_repository)
-        songs = analyze_songs_use_case.execute()
+        if analysis_type == 'liked_songs':
+            analyze_songs_use_case = AnalyzeSongs(session, fetch_liked_songs_use_case, fetch_lyrics_use_case, analyze_song_languages_use_case, song_repository)
+            songs = analyze_songs_use_case.execute()
+        elif analysis_type == 'listening_history':
+            pass
+        elif analysis_type == 'playlist':
+            pass
 
         # for song in liked_songs:
         #     song_start_time = time.time()
@@ -142,7 +150,7 @@ def get_liked_songs():
         language_count_controller = LanguageCountController(count_languages_use_case, language_count_presenter)
         language_counts = language_count_controller.get_language_counts(songs, top_n=TOP_N)
 
-        return jsonify(language_counts)
+        return render_template('results.html', analysis_type=analysis_type, top_languages=language_counts)
     
     except Exception as e:
         return jsonify({"error": str(e)}), 401

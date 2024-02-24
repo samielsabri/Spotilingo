@@ -5,4 +5,5 @@ class LanguageCountPresenter:
     """Presenter to format the language counts for view."""
     def format(self, language_counts):
         """Formats the language counts for view."""
-        return {lang: count for lang, count in language_counts}
+        sorted_language_counts = dict(sorted(language_counts.items(), key=lambda item: item[1], reverse=True))
+        return sorted_language_counts
