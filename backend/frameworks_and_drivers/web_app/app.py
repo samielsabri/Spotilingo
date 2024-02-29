@@ -33,7 +33,7 @@ CLIENT_ID = os.getenv('SPOTIPY_CLIENT_ID')
 CLIENT_SECRET = os.getenv('SPOTIPY_CLIENT_SECRET')
 BASE_URL = 'https://api.spotify.com/v1/'
 AUTH_URL = 'https://accounts.spotify.com/api/token'
-REDIRECT_URI = 'http://localhost:5000/callback'
+REDIRECT_URI = 'http://127.0.0.1:5000/callback'
 
 # Create a Flask app
 app = Flask(__name__)
@@ -73,6 +73,8 @@ def login():
 def callback():
     """Route for Spotify OAuth callback."""
     print("Received callback from Spotify")
+    session.clear()
+    print("cleared session")
     code = request.args.get('code')
     print(f"Code: {code}")
     token_info = spotify_service.oauth_manager.get_access_token(code)

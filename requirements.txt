@@ -1,3 +1,5 @@
+wheel
+pybind11
 python-dotenv #to manage environment variables
 spotipy #python library for spotify api
 lyricsgenius #python library for genius api
@@ -16,4 +18,3 @@ pytest #testing
 IPython #interactive python
 flask #web framework
 python-Levenshtein #to make fuzzywuzzy faster
-```
