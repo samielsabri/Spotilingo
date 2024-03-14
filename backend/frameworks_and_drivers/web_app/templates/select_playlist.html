@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Select Playlist</title>
+</head>
+<body>
+    <h1>Select Playlist to Analyze</h1>
+    <ul>
+        {% for playlist in playlists %}
+        <li>
+            <form method="post" action="/analyze_playlist">
+                <input type="hidden" name="playlist_id" value="{{ playlist.id }}">
+                <button type="submit">{{ playlist.name }}</button>
+            </form>
+        </li>
+        {% endfor %}
+    </ul>
+</body>
+</html>

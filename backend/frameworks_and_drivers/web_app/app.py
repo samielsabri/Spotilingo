@@ -4,8 +4,10 @@ import time
 from flask import Flask
 from flask import request, jsonify, redirect, session, url_for, render_template
 from dotenv import load_dotenv
+from spotipy.oauth2 import SpotifyOauthError
 
-from backend.domain.use_cases.fetch_liked_songs import FetchLikedSongs
+from backend.domain.use_cases.fetch_songs import FetchLikedSongsUseCase, FetchListeningHistoryUseCase, FetchTopSongsUseCase, FetchPlaylistSongsUseCase
+from backend.domain.use_cases.fetch_playlists import FetchPlaylistsUseCase
 from backend.domain.use_cases.fetch_lyrics import FetchLyrics
 from backend.domain.use_cases.analyze_song_languages import AnalyzeSongLanguages
 from backend.domain.use_cases.count_languages import CountLanguages
@@ -65,9 +67,13 @@ TOP_N = 10
 def login():
     """Route to start the OAuth flow."""
     print("Generating Spotify auth URL")
-    auth_url = spotify_service.oauth_manager.get_authorize_url()
-    print(f"Auth URL: {auth_url}")
-    return redirect(auth_url)
+    try:
+        auth_url = spotify_service.oauth_manager.get_authorize_url()
+        print(f"Auth URL: {auth_url}")
+        return redirect(auth_url)
+    except SpotifyOauthError as e:
+        print(f"Error during authentication: {e}")
+        return "Error during authentication. Please try again."
 
 @app.route('/callback')
 def callback():
@@ -80,6 +86,7 @@ def callback():
     token_info = spotify_service.oauth_manager.get_access_token(code)
     print(f"Token info: {token_info}")
     session['token_info'] = token_info  # Save the token info in the session
+    
     return redirect(url_for('main'))
 
 @app.route('/main')
@@ -91,7 +98,7 @@ def main():
 
 @app.route('/analyze', methods=['POST'])
 def analyze():
-    """Fetch the last 10 liked songs for the logged-in user."""
+    """User decides which songs they want to be analyzed."""
     try:
         if 'token_info' not in session:
             # User not logged in, start the OAuth flow
@@ -102,50 +109,26 @@ def analyze():
         # start_time = time.time()
 
 
-        fetch_liked_songs_use_case = FetchLikedSongs(spotify_service)
+
         fetch_lyrics_use_case = FetchLyrics(genius_service, musixmatch_service)
         analyze_song_languages_use_case = AnalyzeSongLanguages(fasttext_detector, langid_detector, ld_detector)
         song_repository = SQLiteSongRepository(db_path)
 
         if analysis_type == 'liked_songs':
+            fetch_liked_songs_use_case = FetchLikedSongsUseCase(spotify_service)
             analyze_songs_use_case = AnalyzeSongs(session, fetch_liked_songs_use_case, fetch_lyrics_use_case, analyze_song_languages_use_case, song_repository)
             songs = analyze_songs_use_case.execute()
         elif analysis_type == 'listening_history':
-            pass
+            fetch_listening_history_use_case = FetchListeningHistoryUseCase(spotify_service)
+            analyze_songs_use_case = AnalyzeSongs(session, fetch_listening_history_use_case, fetch_lyrics_use_case, analyze_song_languages_use_case, song_repository)
+            songs = analyze_songs_use_case.execute()
+        elif analysis_type == 'top_songs':
+            time_range = request.form['time_range']
+            fetch_top_songs_use_case = FetchTopSongsUseCase(spotify_service, time_range)
+            analyze_songs_use_case = AnalyzeSongs(session, fetch_top_songs_use_case, fetch_lyrics_use_case, analyze_song_languages_use_case, song_repository)
+            songs = analyze_songs_use_case.execute()
         elif analysis_type == 'playlist':
-            pass
-
-        # for song in liked_songs:
-        #     song_start_time = time.time()
-        #     song_lyrics_start_time = time.time()
-        #     fetch_lyrics_use_case.execute(song)
-        #     song_lyrics_end_time = time.time()
-        #     if song.lyrics is not None:
-        #         song_language_start_time = time.time()
-        #         analyze_song_languages_use_case.execute(song)
-        #         song_language_end_time = time.time()
-        #     else:
-        #         song_language_start_time = time.time()
-        #         song_language_end_time = time.time()
-        #     song_end_time = time.time()
-        #     print(f"Time to fetch data for {song.title}: {song_end_time - song_start_time} seconds, lyrics: {song_lyrics_end_time - song_lyrics_start_time} seconds, language: {song_language_end_time - song_language_start_time} seconds.")
-        
-        # songs_data = [{
-        #     'spotify_id': song.spotify_id,
-        #     'title': song.title,
-        #     'processed_title': song.processed_title,
-        #     'artist': song.primary_artist,
-        #     'processed_artist': song.processed_artist,
-        #     'secondary_artist': song.secondary_artist,
-        #     'other_artists': song.other_artists,
-        #     'popularity': song.popularity,
-        #     'lyrics': song.lyrics,
-        #     'languages': song.languages
-        # } for song in liked_songs]
-
-        # end_time = time.time()
-        # songs_data_length = len(songs_data)
-        # print(f"Total time to fetch all liked {songs_data_length} songs and lyrics: {end_time - start_time} seconds.")
+            return redirect(url_for('select_playlist'))
         
         count_languages_use_case = CountLanguages()
         language_count_presenter = LanguageCountPresenter()
@@ -156,6 +139,48 @@ def analyze():
     
     except Exception as e:
         return jsonify({"error": str(e)}), 401
+    
+@app.route('/select_playlist')
+def select_playlist():
+    """Route to select a playlist to analyze."""
+    if 'token_info' not in session:
+        return redirect('/login')
+    
+    try:
+        fetch_playlists_use_case = FetchPlaylistsUseCase(spotify_service)
+        playlists = fetch_playlists_use_case.execute(session)
+
+        return render_template('select_playlist.html', playlists=playlists)
+    
+    except Exception as e:
+        return jsonify({"error": str(e)}), 401
+    
+@app.route('/analyze_playlist', methods=['POST'])
+def analyze_playlist():
+    """Perform analysis on the selected playlist."""
+    try:
+        playlist_id = request.form['playlist_id']
+        fetch_playlist_songs_use_case = FetchPlaylistSongsUseCase(spotify_service, playlist_id)
+        fetch_lyrics_use_case = FetchLyrics(genius_service, musixmatch_service)
+        analyze_song_languages_use_case = AnalyzeSongLanguages(fasttext_detector, langid_detector, ld_detector)
+        song_repository = SQLiteSongRepository(db_path)
+
+        analyze_songs_use_case = AnalyzeSongs(session, fetch_playlist_songs_use_case, fetch_lyrics_use_case, analyze_song_languages_use_case, song_repository)
+        songs = analyze_songs_use_case.execute()
+        
+
+        count_languages_use_case = CountLanguages()
+        language_count_presenter = LanguageCountPresenter()
+        language_count_controller = LanguageCountController(count_languages_use_case, language_count_presenter)
+        language_counts = language_count_controller.get_language_counts(songs, top_n=TOP_N)
+
+        return render_template('results.html', analysis_type='Playlist', top_languages=language_counts)
+
+    except Exception as e:
+        # Handle exceptions
+        return str(e)
+    
+
 
 if __name__ == '__main__':
     app.run(debug=True)

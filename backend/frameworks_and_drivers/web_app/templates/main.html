@@ -7,11 +7,33 @@
 </head>
 <body>
     <h1>Spotify Language Analyzer</h1>
-    <form method="post" action="/analyze">
+    <form id="analyze_form" method="post" action="/analyze">
         <button type="submit" name="analysis_type" value="liked_songs">Analyze Liked Songs</button>
+        <button type="button" onclick="showTopSongsOptions()">Analyze Top Songs</button>
         <button type="submit" name="analysis_type" value="listening_history">Analyze Listening History</button>
-        <input type="text" name="playlist_id" placeholder="Enter Playlist ID">
-        <button type="submit" name="analysis_type" value="specific_playlist">Analyze Specific Playlist</button>
+        <button type="submit" name="analysis_type" value="playlist">Analyze Playlist</button>
+        
+        <div id="top-songs-options" style="display: none;">
+            <button type="button" onclick="analyzeTopSongs('short_term')">Last Month</button>
+            <button type="button" onclick="analyzeTopSongs('medium_term')">Last 6 Months</button>
+            <button type="button" onclick="analyzeTopSongs('long_term')">All Time</button>
+        </div>
+
+        <input type="hidden" id="analysis_type" name="analysis_type">
+        <input type="hidden" id="time_range" name="time_range">
     </form>
+
+    <script>
+        function showTopSongsOptions() {
+            var topSongsOptions = document.getElementById('top-songs-options');
+            topSongsOptions.style.display = 'block';
+        }
+
+        function analyzeTopSongs(timeRange) {
+            document.getElementById('analysis_type').value = 'top_songs';
+            document.getElementById('time_range').value = timeRange;
+            document.getElementById('analyze_form').submit();
+        }
+    </script>
 </body>
 </html>

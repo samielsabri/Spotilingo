@@ -44,6 +44,8 @@ def process_lyrics(lyrics):
             line = line.replace("Embed", "")
         if is_not_unique_line(line, processed_lyrics): # skip lines that are already in the list
             continue
+        if not line.strip():
+            continue
 
 
         processed_lyrics.append(line)

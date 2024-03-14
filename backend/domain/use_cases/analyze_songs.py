@@ -2,17 +2,18 @@
 
 class AnalyzeSongs:
     """Higher-level Use case to analyze songs by fetching lyrics and analyzing languages."""
-    def __init__(self, session, fetch_liked_songs_use_case, fetch_lyrics_use_case, analyze_languages_use_case, song_repository):
+    def __init__(self, session, fetch_songs_use_case, fetch_lyrics_use_case, analyze_languages_use_case, song_repository):
         """Initializes a new instance of the AnalyzeSongs class."""
         self.session = session
-        self.fetch_liked_songs_use_case = fetch_liked_songs_use_case
+        self.fetch_songs_use_case = fetch_songs_use_case
         self.fetch_lyrics_use_case = fetch_lyrics_use_case
         self.analyze_languages_use_case = analyze_languages_use_case
         self.song_repository = song_repository
 
     def execute(self):
         """Fetch the liked songs and analyze them by enriching the song object with lyrics and languages"""
-        songs = self.fetch_liked_songs_use_case.execute(self.session)
+        songs = self.fetch_songs_use_case.execute(self.session)
+        #songs = self.songs
 
         for song in songs:
             # Check if the song already exists in the repository with lyrics and languages
