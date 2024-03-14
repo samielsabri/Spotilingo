@@ -4,18 +4,35 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Select Playlist</title>
+    <style>
+        body {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 20px;
+            padding: 20px;
+        }
+        .playlist {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+        .playlist img {
+            width: 100px; /* Adjust as needed */
+            height: auto;
+            margin-bottom: 10px;
+        }
+    </style>
 </head>
 <body>
     <h1>Select Playlist to Analyze</h1>
-    <ul>
-        {% for playlist in playlists %}
-        <li>
-            <form method="post" action="/analyze_playlist">
-                <input type="hidden" name="playlist_id" value="{{ playlist.id }}">
-                <button type="submit">{{ playlist.name }}</button>
-            </form>
-        </li>
-        {% endfor %}
-    </ul>
+    {% for playlist in playlists %}
+    <div class="playlist">
+        <form method="post" action="/analyze_playlist">
+            <input type="hidden" name="playlist_id" value="{{ playlist.id }}">
+            <button type="submit"><img src="{{ playlist.images[0].url }}" alt="Playlist Cover">{{ playlist.name }}</button>
+        </form>
+    </div>
+    {% endfor %}
 </body>
 </html>
